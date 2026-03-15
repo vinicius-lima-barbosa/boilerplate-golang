@@ -20,18 +20,7 @@ API base em Go usando Fiber, GORM, PostgreSQL e migrations com `golang-migrate`.
 
 ### 1. Configurar variáveis de ambiente
 
-Crie um arquivo `.env` na raiz do projeto com este conteúdo:
-
-```env
-PORT=3000
-TIMEZONE=America/Sao_Paulo
-
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=boilerplate
-
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/boilerplate
-```
+Crie um arquivo `.env` na raiz do projeto com o conteúdo listado no arquivo `.env.example.org`.
 
 Observação: o app atualmente sobe na porta `3000` (definida no código), então mantenha a porta livre.
 
