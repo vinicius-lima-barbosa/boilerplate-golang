@@ -1,10 +1,10 @@
 package server
 
 import (
+	_ "github.com/vinicius-lima-barbosa/boilerplate-golang/cmd/api/docs"
 	config "github.com/vinicius-lima-barbosa/boilerplate-golang/internal/database"
 
 	"github.com/gofiber/swagger"
-	_ "github.com/gofiber/swagger"
 
 	"github.com/vinicius-lima-barbosa/boilerplate-golang/internal/router"
 
@@ -21,12 +21,11 @@ func Start() *fiber.App {
 	})
 
 	cfg := swagger.Config{
-		URL:       "/",
-		ConfigURL: "/docs",
-		Title:     "Documentação API Boilerplate Golang",
+		URL:   "/docs/doc.json",
+		Title: "Documentação API Boilerplate Golang",
 	}
 
-	app.Use(swagger.New(cfg))
+	app.Get("/docs/*", swagger.New(cfg))
 	config.Connection()
 
 	router.Setup(app)
