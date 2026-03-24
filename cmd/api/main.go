@@ -8,7 +8,7 @@ import (
 // @version v1.0.1
 // @description API boilerplate em Golang utilizando Fiber, GORM e PostgreSQL
 // @host localhost:3000
-// @BasePath /
+// @BasePath /api
 
 func main() {
 	app := server.Start()

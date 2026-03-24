@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/health": {
+        "/health": {
             "get": {
                 "description": "Endpoint para validar se a API esta em execucao",
                 "produces": [
@@ -52,7 +52,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "v1.0.1",
 	Host:             "localhost:3000",
-	BasePath:         "/",
+	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Boilerplate Golang API",
 	Description:      "API boilerplate em Golang utilizando Fiber, GORM e PostgreSQL",
