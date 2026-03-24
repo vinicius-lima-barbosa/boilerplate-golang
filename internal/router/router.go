@@ -9,12 +9,14 @@ import (
 type Router struct {
 	app    *fiber.App
 	health *api.HealthRouter
+	users  *api.UserRouter
 }
 
 func New(app *fiber.App) *Router {
 	return &Router{
 		app:    app,
 		health: api.NewHealthRouter(app),
+		users:  api.NewUserRouter(app),
 	}
 }
 
@@ -26,4 +28,5 @@ func Setup(app *fiber.App) {
 
 	// Setup API routes
 	router.health.Setup(api)
+	router.users.Setup(api)
 }
