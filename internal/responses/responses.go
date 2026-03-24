@@ -46,10 +46,15 @@ func NewSuccessResponseWithData(c *fiber.Ctx, status int, message string, data i
 }
 
 func NewErrorResponse(c *fiber.Ctx, status int, message string, err error) error {
+	errorMessage := ""
+	if err != nil {
+		errorMessage = err.Error()
+	}
+
 	return c.Status(status).JSON(fiber.Map{
 		"success": false,
 		"message": message,
-		"error":   err.Error(),
+		"error":   errorMessage,
 	})
 }
 

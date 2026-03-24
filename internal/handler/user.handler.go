@@ -12,9 +12,9 @@ import (
 type UserHandler interface {
 	GetUsers(c *fiber.Ctx) error
 	CreateUser(c *fiber.Ctx) error
-	// GetUserByID(c *fiber.Ctx) error
-	// UpdateUser(c *fiber.Ctx) error
-	// DeleteUser(c *fiber.Ctx) error
+	GetUserByID(c *fiber.Ctx) error
+	UpdateUser(c *fiber.Ctx) error
+	DeleteUser(c *fiber.Ctx) error
 }
 
 type userHandler struct {
@@ -42,6 +42,34 @@ func (h *userHandler) GetUsers(c *fiber.Ctx) error {
 	}
 
 	return responses.NewSuccessResponseWithData(c, fiber.StatusOK, "Users retrieved successfully", users)
+}
+
+// GetUserByID godoc
+// @Summary Get user by ID
+// @Description Retrieve a user by their ID
+// @Tags Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} dto.UserResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
+// @Router /users/{id} [get]
+func (h *userHandler) GetUserByID(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return responses.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid user ID", err)
+	}
+
+	user, err := h.userService.GetUserByID(uint(id))
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return responses.NewErrorResponse(c, fiber.StatusNotFound, "User not found", nil)
+		}
+		return responses.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve user", err)
+	}
+
+	return responses.NewSuccessResponseWithData(c, fiber.StatusOK, "User retrieved successfully", user)
 }
 
 // CreateUser godoc
@@ -73,4 +101,77 @@ func (h *userHandler) CreateUser(c *fiber.Ctx) error {
 	}
 
 	return responses.NewSuccessResponseWithData(c, fiber.StatusCreated, "User created successfully", user)
+}
+
+// UpdateUser godoc
+// @Summary Update an existing user
+// @Description Update an existing user with the provided information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body models.User true "User to update"
+// @Success 200 {object} dto.UserResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
+// @Router /users/{id} [put]
+func (h *userHandler) UpdateUser(c *fiber.Ctx) error {
+	tx, ok := c.Locals(middleware.DBTransactionKey).(*gorm.DB)
+	if !ok || tx == nil {
+		return responses.NewErrorResponse(c, fiber.StatusInternalServerError, "Database transaction not initialized", nil)
+	}
+
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return responses.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid user ID", err)
+	}
+
+	data := new(requests.UpdateUserRequest)
+	if err := c.BodyParser(data); err != nil {
+		return responses.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid request body", err)
+	}
+
+	userModel := data.ToModel()
+	updatedUser, err := h.userService.WithTrx(tx).UpdateUser(uint(id), userModel)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return responses.NewErrorResponse(c, fiber.StatusNotFound, "User not found", nil)
+		}
+		return responses.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update user", err)
+	}
+
+	return responses.NewSuccessResponseWithData(c, fiber.StatusOK, "User updated successfully", updatedUser)
+}
+
+// DeleteUser godoc
+// @Summary Delete a user
+// @Description Delete a user by their ID
+// @Tags Users
+// @Param id path int true "User ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
+// @Router /users/{id} [delete]
+func (h *userHandler) DeleteUser(c *fiber.Ctx) error {
+	tx, ok := c.Locals(middleware.DBTransactionKey).(*gorm.DB)
+	if !ok || tx == nil {
+		return responses.NewErrorResponse(c, fiber.StatusInternalServerError, "Database transaction not initialized", nil)
+	}
+
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return responses.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid user ID", err)
+	}
+
+	err = h.userService.WithTrx(tx).DeleteUser(uint(id))
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return responses.NewErrorResponse(c, fiber.StatusNotFound, "User not found", nil)
+		}
+		return responses.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to delete user", err)
+	}
+
+	return responses.NewSuccessResponse(c, fiber.StatusNoContent, "User deleted successfully")
 }

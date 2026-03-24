@@ -17,3 +17,19 @@ func (c *CreateUserRequest) ToModel() *models.User {
 		Description: c.Description,
 	}
 }
+
+type UpdateUserRequest struct {
+	Name        string      `json:"name" validate:"required"`
+	Email       string      `json:"email" validate:"required,email"`
+	Type        models.Type `json:"type" validate:"required,oneof=admin user guest"`
+	Description string      `json:"description"`
+}
+
+func (u *UpdateUserRequest) ToModel() *models.User {
+	return &models.User{
+		Name:        u.Name,
+		Email:       u.Email,
+		Type:        u.Type,
+		Description: u.Description,
+	}
+}
