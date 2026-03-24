@@ -20,6 +20,13 @@ func (r *HealthRouter) Setup(api fiber.Router) {
 	api.Get("/health", r.healthCheck)
 }
 
+// healthCheck godoc
+// @Summary Verifica saude da API
+// @Description Endpoint para validar se a API esta em execucao
+// @Tags Health
+// @Produce json
+// @Success 200 {object} HealthResponse
+// @Router /health [get]
 func (r *HealthRouter) healthCheck(c *fiber.Ctx) error {
 	return c.JSON(HealthResponse{
 		Status: "ok",
