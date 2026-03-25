@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	config "github.com/vinicius-lima-barbosa/boilerplate-golang/internal/database"
 	"github.com/vinicius-lima-barbosa/boilerplate-golang/internal/models"
@@ -11,8 +12,11 @@ import (
 type UserRepository interface {
 	GetAll(ctx context.Context) ([]models.User, error)
 	GetByID(ctx context.Context, id uint) (*models.User, error)
+	GetByEmail(ctx context.Context, email string) (*models.User, error)
 	Create(ctx context.Context, params *models.User) (*models.User, error)
 	Update(ctx context.Context, id uint, params *models.User) (*models.User, error)
+	UpdateRefreshTokenHash(ctx context.Context, id uint, refreshTokenHash *string) error
+	UpdateLastLoginAt(ctx context.Context, id uint, loginTime time.Time) error
 	Delete(ctx context.Context, id uint) error
 	WithTrx(trx *gorm.DB) UserRepository
 }
@@ -47,6 +51,12 @@ func (u *userRepository) GetByID(ctx context.Context, id uint) (*models.User, er
 	return &user, err
 }
 
+func (u *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
+	err := u.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
+	return &user, err
+}
+
 func (u *userRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	err := u.db.WithContext(ctx).Create(&user).Error
 	if err != nil {
@@ -74,6 +84,20 @@ func (u *userRepository) Update(ctx context.Context, id uint, user *models.User)
 	}
 
 	return &existingUser, nil
+}
+
+func (u *userRepository) UpdateRefreshTokenHash(ctx context.Context, id uint, refreshTokenHash *string) error {
+	return u.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ?", id).
+		Update("refresh_token_hash", refreshTokenHash).Error
+}
+
+func (u *userRepository) UpdateLastLoginAt(ctx context.Context, id uint, loginTime time.Time) error {
+	return u.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ?", id).
+		Update("last_login_at", loginTime).Error
 }
 
 func (u *userRepository) Delete(ctx context.Context, id uint) error {

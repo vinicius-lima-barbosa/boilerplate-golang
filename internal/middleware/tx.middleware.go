@@ -25,6 +25,11 @@ func DBTransactionMiddleware() fiber.Handler {
 			return err
 		}
 
+		if c.Response().StatusCode() >= fiber.StatusBadRequest {
+			txHandle.Rollback()
+			return nil
+		}
+
 		if err := txHandle.Commit().Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to commit database transaction",
